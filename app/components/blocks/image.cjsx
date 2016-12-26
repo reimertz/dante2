@@ -24,7 +24,7 @@ class ImageBlock extends React.Component
     @config = @props.blockProps.config
     @file = @props.blockProps.data.get('file')
     @state =
-      loading: false 
+      loading: false
       selected: false
       loading_progress: 0
       enabled: false
@@ -64,7 +64,7 @@ class ImageBlock extends React.Component
     if data.aspect_ratio
       width: data.aspect_ratio['width']
       height: data.aspect_ratio['height']
-      ratio: data.aspect_ratio['ratio'] 
+      ratio: data.aspect_ratio['ratio']
     else
       width:  0
       height: 0
@@ -107,7 +107,7 @@ class ImageBlock extends React.Component
   replaceImg: =>
     @img = new Image();
     @img.src = this.refs.image_tag.src
-    @setState 
+    @setState
       url: @img.src
     self = @
     # exit only when not blob and not forceUload
@@ -117,7 +117,7 @@ class ImageBlock extends React.Component
         width: @img.width
         height: @img.height
         aspect_ratio: self.getAspectRatio(@img.width, @img.height)
-      
+
       @handleUpload()
 
   startLoader: =>
@@ -153,7 +153,7 @@ class ImageBlock extends React.Component
     setEditorState(
       EditorState.forceSelection(getEditorState(), newselection)
     )
-  
+
   handleGrafFigureSelectImg: (e)=>
     e.preventDefault()
     @setState
@@ -193,31 +193,61 @@ class ImageBlock extends React.Component
     url = @config.upload_url
     if typeof(url) is "function" then url() else url
 
-    
+
   uploadFile: =>
-    # console.log "FORM DATA:" , @formatData()
-    axios
-      method: 'post'
-      url: @getUploadUrl()
-      data: @formatData()
-      onUploadProgress: (e)=>
-        @updateProgressBar(e)
-    .then (result)=> 
-      @uploadCompleted(result.data)
-      @props.blockProps.removeLock()
-      @stopLoader()
-      @file = null
+    if(@config.use_gist)
+      axios
+        method: 'post'
+        url: @getUploadUrl()
+        data: JSON.stringify({
+          files: {
+            'image.png': {
+              'content': @getBase64Image(@img)
+            }
+          }
+        })
+        onUploadProgress: (e)=>
+          @updateProgressBar(e)
+      .then (result) =>
+        @uploadCompleted({url: result.data.files['image.png'].raw_url})
+        @props.blockProps.removeLock()
+        @stopLoader()
+        @file = null
 
-      if @config.upload_callback
-        @config.upload_callback(response, @)
+        if @config.upload_callback
+          @config.upload_callback(response, @)
 
-    .catch (error)=>
-      @props.blockProps.removeLock()
-      @stopLoader()
+      .catch (error)=>
+        @props.blockProps.removeLock()
+        @stopLoader()
 
-      console.log("ERROR: got error uploading file #{error}")
-      if @config.upload_error_callback
-        @config.upload_error_callback(error, @)
+        console.log("ERROR: got error uploading file #{error}")
+        if @config.upload_error_callback
+          @config.upload_error_callback(error, @)
+
+    else
+      axios
+        method: 'post'
+        url: @getUploadUrl()
+        data: @formatData()
+        onUploadProgress: (e)=>
+          @updateProgressBar(e)
+      .then (result) =>
+        @uploadCompleted(result.data)
+        @props.blockProps.removeLock()
+        @stopLoader()
+        @file = null
+
+        if @config.upload_callback
+          @config.upload_callback(response, @)
+
+      .catch (error)=>
+        @props.blockProps.removeLock()
+        @stopLoader()
+
+        console.log("ERROR: got error uploading file #{error}")
+        if @config.upload_error_callback
+          @config.upload_error_callback(error, @)
 
     handleUp = (json_response)=>
       @uploadCompleted json_response, n
@@ -251,13 +281,19 @@ class ImageBlock extends React.Component
     , 0
 
   render: =>
+    if (@state.url.indexOf('githubusercontent') >= 0)
+      axios
+        url: @state.url
+      .then (result) =>
+        @setState
+          url: result.data
 
     return (
-      <div ref="image_tag2" 
+      <div ref="image_tag2"
           suppressContentEditableWarning={true}>
         <div
-          className="aspectRatioPlaceholder is-locked" 
-          style={@coords()} 
+          className="aspectRatioPlaceholder is-locked"
+          style={@coords()}
           onClick={@handleGrafFigureSelectImg}>
           <div style={{paddingBottom: "#{@state.aspect_ratio.ratio}%" }}} className='aspect-ratio-fill'>
           </div>
@@ -267,7 +303,7 @@ class ImageBlock extends React.Component
             width={@state.aspect_ratio.width}
             className='graf-image'
           />
-          <Loader 
+          <Loader
             toggle={@state.loading}
             progress={@state.loading_progress}
           />
@@ -281,8 +317,8 @@ class ImageBlock extends React.Component
                 {@placeholderText()}
               </span>
           }
-           
-          <EditorBlock {...@props} 
+
+          <EditorBlock {...@props}
             editable=true
             className="imageCaption"
           />
@@ -312,5 +348,5 @@ class Loader extends React.Component
         }
       </div>
     )
-    
+
 module.exports = ImageBlock

@@ -33,7 +33,7 @@ DraftPasteProcessor = require('draft-js/lib/DraftPasteProcessor')
 
 isSoftNewlineEvent = require('draft-js/lib/isSoftNewlineEvent')
 
-{ 
+{
   addNewBlock
   resetBlockWithType
   updateDataOfBlock
@@ -46,7 +46,7 @@ isSoftNewlineEvent = require('draft-js/lib/isSoftNewlineEvent')
 DanteImagePopover = require('./popovers/image')
 DanteAnchorPopover = require('./popovers/link')
 
-{ 
+{
   getSelectionRect
   getSelection
 } = require("../utils/selection.js")
@@ -67,7 +67,7 @@ customHTML2Content = require('../utils/html2content.coffee')
 class Dante
   constructor: (options={})->
     console.log "init editor Dante!"
-    
+
     # deep merge on config
     config = Map(fromJS(@defaultOptions(options)))
 
@@ -115,6 +115,7 @@ class Dante
           insertion: "upload"
           insert_block: "image"
         options:
+          use_gist: options.use_gist
           upload_url: options.upload_url
           upload_callback: options.image_upload_callback
           image_delete_callback: options.image_delete_callback
@@ -152,7 +153,7 @@ class Dante
         block: 'VideoBlock'
         renderable: true
         breakOnContinuous: true
-        wrapper_class: "graf--figure graf--iframe" 
+        wrapper_class: "graf--figure graf--iframe"
         selected_class:" is-selected is-mediaFocused"
         widget_options:
           displayOnInlineTooltip: true
@@ -188,10 +189,10 @@ class Dante
             type: block.getData().get('type')
 
           ctx.onChange(resetBlockWithType(
-            editorState, 
-            data.type, 
+            editorState,
+            data.type,
             data)
-          )   
+          )
       }
     ]
 
@@ -210,10 +211,10 @@ class Dante
             "code-block"
             'header-one'
             'header-two'
-            'header-three'  
-            'header-four'      
+            'header-three'
+            'header-four'
           ]
-          widget_options: 
+          widget_options:
             block_types: [
               # {label: 'p', style: 'unstyled'},
               {label: 'h2', style: 'header-one', type: "block"},
@@ -320,7 +321,7 @@ class Dante
     @options.content
 
   render: ->
-    @editor = ReactDOM.render(<DanteEditor content={@getContent()} 
+    @editor = ReactDOM.render(<DanteEditor content={@getContent()}
       config={@options}/>, document.getElementById(@options.el))
 
 class DanteEditor extends React.Component
@@ -345,18 +346,18 @@ class DanteEditor extends React.Component
         'unstyled':
           wrapper: null
           element: 'div'
-        'paragraph': 
+        'paragraph':
           wrapper: null
           element: 'div'
         'placeholder':
           wrapper: null
           element: 'div'
-          
-    }) 
+
+    })
 
     @extendedBlockRenderMap = DefaultDraftBlockRenderMap.merge(@blockRenderMap);
 
-    @state = 
+    @state =
       editorState: @initializeState()
       read_only: @props.config.read_only
       blockRenderMap: @extendedBlockRenderMap
@@ -378,7 +379,7 @@ class DanteEditor extends React.Component
 
     @save = new SaveBehavior
       getLocks: @getLocks
-      config: 
+      config:
         xhr: @props.config.xhr
         data_storage: @props.config.data_storage
       editorState: @state.editorState
@@ -386,8 +387,8 @@ class DanteEditor extends React.Component
 
   initializeState: ()=>
     if @.props.content #and @.props.content.trim() isnt ""
-      @decodeEditorContent(@props.content)    
-    else 
+      @decodeEditorContent(@props.content)
+    else
       EditorState.createEmpty(@decorator)
 
   refreshSelection: (newEditorState)=>
@@ -407,19 +408,19 @@ class DanteEditor extends React.Component
     })
 
     newState = EditorState.forceSelection(newEditorState, selectionState)
-    
+
     @onChange(newState)
-  
+
   forceRender: (editorState)=>
     selection       = @.state.editorState.getSelection()
     content         = editorState.getCurrentContent()
     newEditorState  = EditorState.createWithContent(content, @decorator)
 
     @refreshSelection(newEditorState)
-  
+
   onChange: (editorState) =>
     @setPreContent()
-    
+
     # console.log "BB", editorState.toJS()
     @.setState({editorState})
     #console.log "changed at", editorState.getSelection().getAnchorKey()
@@ -429,8 +430,8 @@ class DanteEditor extends React.Component
     blockType = currentBlock.getType()
 
     if (!editorState.getSelection().isCollapsed())
- 
-      tooltip = @tooltipsWithProp('displayOnSelection')[0] 
+
+      tooltip = @tooltipsWithProp('displayOnSelection')[0]
       return unless @tooltipHasSelectionElement(tooltip, blockType)
 
       @handleTooltipDisplayOn('displayOnSelection')
@@ -440,9 +441,9 @@ class DanteEditor extends React.Component
     setTimeout ()=>
       @relocateTooltips()
     , 0
-    
-    @dispatchChangesToSave()    
-  
+
+    @dispatchChangesToSave()
+
   dispatchChangesToSave: =>
     clearTimeout @saveTimeout
     @saveTimeout = setTimeout =>
@@ -456,13 +457,13 @@ class DanteEditor extends React.Component
 
   focus: () =>
     #@props.refs.richEditor.focus()
-    
+
   getEditorState: =>
     @state.editorState
 
   emitSerializedOutput: =>
     #s = @state.editorState.getCurrentContent()
-    
+
     raw = convertToRaw( @state.editorState.getCurrentContent() )
     # console.log raw
 
@@ -483,19 +484,19 @@ class DanteEditor extends React.Component
     out = c.getBlocksAsArray().map (o)=>
         o.getText()
       .join("\n")
-    
+
     console.log out
     return out
 
   emitHTML2: ()->
 
     html = convertToHTML(
-      entityToHTML: (entity, originalText) => 
+      entityToHTML: (entity, originalText) =>
         if entity.type is 'LINK'
           return "<a href=\"#{entity.data.url}\">#{originalText}</a>"
         else
           return originalText
- 
+
     )(@.state.editorState.getCurrentContent())
     #html = convertToHTML(@.state.editorState.getCurrentContent())
 
@@ -546,7 +547,7 @@ class DanteEditor extends React.Component
     read_only = if @state.read_only then false else null
     editable  = if read_only isnt null then read_only else dataBlock.editable
     # console.log "blockrender for #{block.getType()} #{editable}"
-    
+
     return (
       component: eval(dataBlock.block)
       editable: editable
@@ -557,18 +558,18 @@ class DanteEditor extends React.Component
         addLock: @addLock
         removeLock: @removeLock
         getLocks: @getLocks
-        config: dataBlock.options 
+        config: dataBlock.options
     )
-    
+
     return null
-   
+
   blockStyleFn: (block)=>
     currentBlock = getCurrentBlock(@.state.editorState)
     is_selected = if currentBlock.getKey() is block.getKey() then "is-selected" else ""
-    
+
     if @renderableBlocks().includes(block.getType())
       return @styleForBlock(block, currentBlock, is_selected)
-    
+
     defaultBlockClass = @defaultWrappers(block.getType())
     if defaultBlockClass.length > 0
       return "graf #{defaultBlockClass[0]} #{is_selected}"
@@ -586,7 +587,7 @@ class DanteEditor extends React.Component
 
     selectedFn = if dataBlock.selectedFn then dataBlock.selectedFn(block) else null
     selected_class = if is_selected then dataBlock.selected_class else ''
-    
+
     return "#{dataBlock.wrapper_class} #{selected_class} #{selectedFn}"
 
   handleTooltipDisplayOn: (prop, display=true)->
@@ -614,7 +615,7 @@ class DanteEditor extends React.Component
 
   handleTXTPaste: (text, html)=>
     currentBlock = getCurrentBlock(@state.editorState)
-    
+
     editorState = @state.editorState
 
     switch currentBlock.getType()
@@ -656,7 +657,7 @@ class DanteEditor extends React.Component
 
     selection = @state.editorState.getSelection();
     endKey = selection.getEndKey()
-    
+
     content = @state.editorState.getCurrentContent();
     blocksBefore = content.blockMap.toSeq().takeUntil((v) => (v.key is endKey))
     blocksAfter = content.blockMap.toSeq().skipUntil((v) => (v.key is endKey)).rest()
@@ -681,11 +682,11 @@ class DanteEditor extends React.Component
     });
 
     pushedContentState = EditorState.push(
-      @state.editorState, 
-      newContent, 
+      @state.editorState,
+      newContent,
       'insert-fragment'
     )
-   
+
     @onChange(pushedContentState)
 
     true
@@ -693,7 +694,7 @@ class DanteEditor extends React.Component
   handlePasteImage: (files)=>
     #TODO: check file types
     files.map (file)=>
-      opts =  
+      opts =
         url: URL.createObjectURL(file)
         file: file
 
@@ -701,7 +702,7 @@ class DanteEditor extends React.Component
 
   handleDroppedFiles: (state, files)=>
     files.map (file)=>
-      opts =  
+      opts =
         url: URL.createObjectURL(file)
         file: file
 
@@ -739,13 +740,13 @@ class DanteEditor extends React.Component
       #if blockType.indexOf('atomic') is 0
       #  @.onChange(addNewBlockAt(editorState, currentBlock.getKey()))
       #  return true;
-      
+
       if currentBlock.getText().length is 0
 
         if config_block && config_block.handleEnterWithoutText
           config_block.handleEnterWithText(@, currentBlock)
           @closePopOvers()
-          return true 
+          return true
 
         #TODO turn this in configurable
         switch (blockType)
@@ -754,9 +755,9 @@ class DanteEditor extends React.Component
             return true;
           else
             return false;
-      
+
       if currentBlock.getText().length > 0
-        
+
         if blockType is "unstyled"
           # hack hackety hack
           # https://github.com/facebook/draft-js/issues/304
@@ -767,20 +768,20 @@ class DanteEditor extends React.Component
 
           newEditorState = EditorState.push(@state.editorState, newContent, 'insert-characters')
           @.onChange(newEditorState)
-          
+
           setTimeout =>
-            #TODO: check is element is in viewport 
-            a = document.getElementsByClassName("is-selected")            
+            #TODO: check is element is in viewport
+            a = document.getElementsByClassName("is-selected")
             pos = a[0].getBoundingClientRect()
             window.scrollTo(0, pos.top + window.scrollY - 100)
           , 0
 
           return true
-        
+
         if config_block && config_block.handleEnterWithText
           config_block.handleEnterWithText(@, currentBlock)
           @closePopOvers()
-          return true 
+          return true
 
         if ( currentBlock.getLength() is selection.getStartOffset())
           if @continuousBlocks.indexOf(blockType) < 0
@@ -788,7 +789,7 @@ class DanteEditor extends React.Component
             return true
 
         return false
-      
+
       # selection.isCollapsed() and # should we check collapsed here?
       if ( currentBlock.getLength() is selection.getStartOffset()) #or (config_block && config_block.breakOnContinuous))
         # it will match the unstyled for custom blocks
@@ -796,9 +797,9 @@ class DanteEditor extends React.Component
           @.onChange(addNewBlockAt(editorState, currentBlock.getKey()))
           return true
         return false
-      
+
       return false
-    
+
     #return false
 
   # TODO: make this configurable
@@ -807,7 +808,7 @@ class DanteEditor extends React.Component
     blockType = currentBlock.getType()
     selection = @.state.editorState.getSelection()
     editorState = @state.editorState
-    
+
     # close popovers
     if currentBlock.getText().length isnt 0
       #@closeInlineButton()
@@ -819,11 +820,11 @@ class DanteEditor extends React.Component
     endEntityType = endKey && Entity.get(endKey).getType()
     afterEndKey = currentBlock.getEntityAt(endOffset)
     afterEndEntityType = afterEndKey && Entity.get(afterEndKey).getType()
-    
+
     # will insert blank space when link found
     if (chars is ' ' && endEntityType is 'LINK' && afterEndEntityType isnt 'LINK')
       newContentState = Modifier.insertText(
-        editorState.getCurrentContent(), 
+        editorState.getCurrentContent(),
         selection,
         ' '
       )
@@ -834,7 +835,7 @@ class DanteEditor extends React.Component
     # block transform
     if blockType.indexOf('atomic') is 0
       return false;
-  
+
     blockLength = currentBlock.getLength()
     if selection.getAnchorOffset() > 1 || blockLength > 1
       return false
@@ -845,18 +846,18 @@ class DanteEditor extends React.Component
 
     if !blockTo
       return false
-    
+
     @onChange(resetBlockWithType(editorState, blockTo))
 
     return true
-  
+
   # TODO: make this configurable
   handleKeyCommand: (command)=>
     editorState = @.state.editorState
 
     if @.props.handleKeyCommand && @.props.handleKeyCommand(command)
       return true
-    
+
     if command is 'add-new-block'
       @.onChange(addNewBlock(editorState, 'blockquote'))
       return true
@@ -874,7 +875,7 @@ class DanteEditor extends React.Component
     if command.indexOf('toggle_block:') is 0
       newBlockType = command.split(':')[1]
       currentBlockType = block.getType()
-      
+
       @onChange(
         RichUtils.toggleBlockType(editorState, newBlockType)
       )
@@ -884,9 +885,9 @@ class DanteEditor extends React.Component
     if newState
       @.onChange(newState);
       return true;
-    
+
     return false;
-  
+
   findCommandKey: (opt, command)=>
     # console.log "COMMAND find: #{opt} #{command}"
     @key_commands[opt].find (o)->
@@ -900,7 +901,7 @@ class DanteEditor extends React.Component
     #⌘ + Alt + 1 / Ctrl + Alt + 1   Header
     #⌘ + Alt + 2 / Ctrl + Alt + 2   Sub-Header
     #⌘ + Alt + 5 / Ctrl + Alt + 5   Quote (Press once for a block quote, again for a pull quote and a third time to turn off quote)
-    
+
     # console.log "CTRL #{e.ctrlKey} #{e.which} alt: #{e.altKey} shift #{e.shiftKey}"
     # console.log('in window::'+ e.ctrlKey+'in mac os'+e.metaKey+'####'+e.META_MASK+'##$&&'+e.CTRL_MASK);
 
@@ -908,7 +909,7 @@ class DanteEditor extends React.Component
       if (e.shiftKey)
         cmd = @findCommandKey("alt-shift", e.which)
         return cmd.cmd if cmd
-        
+
         return getDefaultKeyBinding(e)
 
       if e.ctrlKey or e.metaKey
@@ -932,7 +933,7 @@ class DanteEditor extends React.Component
     @forceRender(newState)
 
   setDirection: (direction_type)=>
-    
+
     contentState = @state.editorState.getCurrentContent()
     selectionState = @state.editorState.getSelection()
     block = contentState.getBlockForKey(selectionState.anchorKey);
@@ -965,7 +966,7 @@ class DanteEditor extends React.Component
   #################################
   # TODO: this methods belongs to popovers/link
   #################################
-  
+
   handleShowPopLinkOver: (e)=>
     @showPopLinkOver()
 
@@ -973,7 +974,7 @@ class DanteEditor extends React.Component
     @hidePopLinkOver()
 
   showPopLinkOver: (el)=>
-    # handles popover display 
+    # handles popover display
     # using anchor or from popover
 
     # set url first in order to calculate popover width
@@ -1012,21 +1013,21 @@ class DanteEditor extends React.Component
         <article className="postArticle">
           <div className="postContent">
             <div className="notesSource">
-              <div id="editor" 
+              <div id="editor"
                 className="postField postField--body">
 
-                <section className="section--first section--last"> 
-                  <div className="section-divider layoutSingleColumn"> 
-                    <hr className="section-divider"/> 
-                  </div> 
+                <section className="section--first section--last">
+                  <div className="section-divider layoutSingleColumn">
+                    <hr className="section-divider"/>
+                  </div>
 
-                  <div className="section-content"> 
-                    <div ref="richEditor" 
-                      className="section-inner layoutSingleColumn" 
+                  <div className="section-content">
+                    <div ref="richEditor"
+                      className="section-inner layoutSingleColumn"
                       onClick={@.focus}>
-                      <Editor 
+                      <Editor
                         blockRendererFn={@.blockRenderer}
-                        editorState={@state.editorState} 
+                        editorState={@state.editorState}
                         onChange={@onChange}
                         onUpArrow={@handleUpArrow}
                         onDownArrow={@handleDownArrow}
@@ -1043,7 +1044,7 @@ class DanteEditor extends React.Component
                         placeholder={@props.config.body_placeholder}
                         ref="editor"
                       />
-                    </div> 
+                    </div>
                   </div>
                 </section>
 
@@ -1054,7 +1055,7 @@ class DanteEditor extends React.Component
 
         {
           @tooltips.map (o, i)=>
-            <o.component 
+            <o.component
               ref={o.ref}
               key={i}
               editor={@}
@@ -1062,8 +1063,8 @@ class DanteEditor extends React.Component
               onChange={@onChange}
               configTooltip={o}
               widget_options={o.widget_options}
-              
-              showPopLinkOver={@showPopLinkOver} 
+
+              showPopLinkOver={@showPopLinkOver}
               hidePopLinkOver={@hidePopLinkOver}
               handleOnMouseOver={@handleShowPopLinkOver}
               handleOnMouseOut={@handleHidePopLinkOver}
@@ -1078,6 +1079,6 @@ class DanteEditor extends React.Component
         }
 
       </div>
-    ) 
+    )
 
 module.exports = Dante

@@ -1,7 +1,7 @@
 axios = require("axios")
 Immutable = require('immutable')
 
-class SaveBehavior 
+class SaveBehavior
   constructor: (options)->
     @getLocks = options.getLocks
     @config = options.config
@@ -16,7 +16,7 @@ class SaveBehavior
     return if @getLocks() > 0
 
     clearTimeout(@timeout)
-    
+
     @timeout = setTimeout =>
       @checkforStore(content)
     , @config.data_storage.interval
@@ -37,21 +37,38 @@ class SaveBehavior
 
   checkforStore: (content)->
     # ENTER DATA STORE
+    data
     isChanged = !Immutable.is(Immutable.fromJS(@.editorContent), Immutable.fromJS(content))
     # console.log("CONTENT CHANGED:", isChanged)
-    
+
     return unless isChanged
 
     @config.xhr.before_handler() if @config.xhr.before_handler
     # console.log "SAVING TO: #{@getMethod()} #{@getUrl()}"
-    
+
+    if (@config.data_storage.use_gist)
+      data = JSON.stringify({
+        files: {
+          'asd.json': {
+            'content': JSON.stringify({
+              editor_content: content
+              text_content: @getTextFromEditor(content)
+            })
+          }
+        }
+      })
+    else
+      data = {
+        editor_content: JSON.stringify(content)
+        text_content: @getTextFromEditor(content)
+      }
+
+    debugger
     axios
       method: @getMethod()
       url: @getUrl()
-      data: 
-        editor_content: JSON.stringify(content)
-        text_content: @getTextFromEditor(content)
-    .then (result)=> 
+      data: data
+    .then (result)=>
       # console.log "STORING CONTENT", result
       @config.data_storage.success_handler(result) if @config.data_storage.success_handler
       @config.xhr.success_handler(result) if @config.xhr.success_handler
