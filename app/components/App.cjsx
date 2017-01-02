@@ -117,6 +117,7 @@ class Dante
         options:
           use_gist: options.use_gist
           upload_url: options.upload_url
+          upload_headers: options.upload_headers
           upload_callback: options.image_upload_callback
           image_delete_callback: options.image_delete_callback
           image_caption_placeholder: options.image_caption_placeholder

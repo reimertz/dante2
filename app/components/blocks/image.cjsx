@@ -181,18 +181,21 @@ class ImageBlock extends React.Component
     if @file
       #file = @.props.blockProps.data.get('file')
 
-      formData.append('file', @file)
+      formData.append('image', @file)
+      formData.append('type', 'file')
       return formData
     else
-      formData.append('url',
-        @.props.blockProps.data.get("url")
-      )
+      formData.append('image', @.props.blockProps.data.get("url"))
+      formData.append('type', 'url')
       return formData
 
   getUploadUrl: =>
     url = @config.upload_url
     if typeof(url) is "function" then url() else url
 
+  getUploadHeaders: =>
+    headers = @config.upload_headers || {}
+    return headers
 
   uploadFile: =>
     if(@config.use_gist)
@@ -229,6 +232,7 @@ class ImageBlock extends React.Component
       axios
         method: 'post'
         url: @getUploadUrl()
+        headers: @getUploadHeaders()
         data: @formatData()
         onUploadProgress: (e)=>
           @updateProgressBar(e)

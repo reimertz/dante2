@@ -58,12 +58,12 @@ class SaveBehavior
         }
       })
     else
+
       data = {
         editor_content: JSON.stringify(content)
         text_content: @getTextFromEditor(content)
       }
 
-    debugger
     axios
       method: @getMethod()
       url: @getUrl()
