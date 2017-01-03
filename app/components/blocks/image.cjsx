@@ -237,7 +237,7 @@ class ImageBlock extends React.Component
         onUploadProgress: (e)=>
           @updateProgressBar(e)
       .then (result) =>
-        @uploadCompleted(result.data)
+        @uploadCompleted(result.data.data.link)
         @props.blockProps.removeLock()
         @stopLoader()
         @file = null
