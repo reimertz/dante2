@@ -75,7 +75,6 @@ class Dante
     console.log @options
 
   defaultOptions: (options={})->
-    # default options
     defaultOptions = {}
     defaultOptions.el = 'app'
     defaultOptions.content = ""
@@ -83,7 +82,6 @@ class Dante
     defaultOptions.spellcheck = false
     defaultOptions.title_placeholder = "Title"
     defaultOptions.body_placeholder = "Write your story"
-    # @defaultOptions.api_key = "86c28a410a104c8bb58848733c82f840"
 
     defaultOptions.widgets = [
       {
@@ -1082,4 +1080,7 @@ class DanteEditor extends React.Component
       </div>
     )
 
-module.exports = Dante
+module.exports = {
+  Dante: Dante,
+  DanteEditor: DanteEditor
+}
