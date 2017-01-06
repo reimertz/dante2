@@ -1080,8 +1080,16 @@ class DanteEditor extends React.Component
       </div>
     )
 
-module.exports.default = Dante
-module.exports = {
-  Dante: Dante,
-  DanteEditor: DanteEditor
-}
+_extends = (target) ->
+  i = 1
+  while i < arguments.length
+    source = arguments[i]
+    for key of source
+      target[key] = source[key]
+    i++
+  target
+
+DanteEditor = exports.DanteEditor = DanteEditor;
+exports['default'] = Dante
+
+module.exports = _extends(exports['default'], exports);
