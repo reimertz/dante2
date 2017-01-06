@@ -1080,6 +1080,7 @@ class DanteEditor extends React.Component
       </div>
     )
 
+module.exports.default = Dante
 module.exports = {
   Dante: Dante,
   DanteEditor: DanteEditor
